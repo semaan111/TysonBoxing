@@ -1,7 +1,7 @@
 'use strict';
 const http=require('node:http'),fs=require('node:fs'),path=require('node:path');
 const {moves,combos,pool,choose}=require('./core.js');
-const allowed=new Set(['index.html','style.css','app.js','mobile.js','music.js','i18n.js','recorder.js','voice-bank.js','coach-audio/es-orthodox.mp3','coach-audio/es-southpaw.mp3','coach-audio/en-orthodox.mp3','coach-audio/en-southpaw.mp3','tyson-3d.png','core.js','icon.svg']);
+const allowed=new Set(['index.html','style.css','app.js','mobile.js','music.js','coach.js','home.js','i18n.js','recorder.js','voice-bank.js','coach-audio/es-orthodox.mp3','coach-audio/es-southpaw.mp3','coach-audio/en-orthodox.mp3','coach-audio/en-southpaw.mp3','tyson-3d.png','core.js','icon.svg']);
 const types={'.html':'text/html; charset=utf-8','.css':'text/css; charset=utf-8','.js':'application/javascript; charset=utf-8','.svg':'image/svg+xml','.png':'image/png','.mp3':'audio/mpeg'};
 function createServer(){return http.createServer((req,res)=>{const url=new URL(req.url,'http://localhost');res.setHeader('X-Content-Type-Options','nosniff');res.setHeader('Referrer-Policy','no-referrer');
 const json=(status,data)=>{res.writeHead(status,{'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store'});res.end(JSON.stringify(data));};

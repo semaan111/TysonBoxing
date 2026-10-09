@@ -12,19 +12,22 @@ function label(code){let s=I.move(code)[0];if(isEN())return s;const south=(cfg||
 function refresh(){const c=config();$('gapValue').textContent=c.gap+' s';$('total').textContent=format((c.prepare+c.work*c.rounds+c.rest*(c.rounds-1))*1000);if(clock.state==='idle'){$('timer').textContent=format(c.work*1000);$('round').textContent=`ROUND 01 / ${String(c.rounds).padStart(2,'0')}`;}const p=pool(c.level,c.focus);$('catalogCount').textContent=isEN()?`${p.length} sequences for this level and focus; ${combos.length} in the full library.`:`${p.length} secuencias disponibles para este nivel y enfoque; ${combos.length} en la biblioteca completa.`;$('catalog').replaceChildren(...p.map(c=>{let a=document.createElement('article');a.textContent=c.id+' · '+c.steps.map(s=>I.move(s)[0]).join(' → ');return a;}));store('tyson-settings',Object.fromEntries(fields.map(k=>[k,$(k).value])));}
 fields.forEach(k=>$(k).addEventListener('input',refresh));$('settings').addEventListener('submit',e=>e.preventDefault());
 function voices(){
- if(!synth){$('voices').innerHTML='<option>'+T('Voz no disponible')+'</option>';$('voice').checked=false;$('voice').disabled=true;$('testVoice').disabled=true;$('audioNote').textContent=T('Este navegador no ofrece síntesis de voz. Usa Chrome, Edge o Safari con voces en español.');return;}
- const current=$('voices').value;
- const locale=isEN()?/^en([-_]|$)/i:/^es([-_]|$)/i;
- available=synth.getVoices().filter(v=>locale.test(v.lang));
- $('voices').replaceChildren(...available.map(v=>{const o=document.createElement('option');o.value=v.voiceURI;o.textContent=v.name+' · '+v.lang;return o;}));
- if(!available.length){const o=document.createElement('option');o.value='';o.textContent=isEN()?T('Inglés automático'):T('Español automático');$('voices').append(o);$('audioNote').textContent=T(isEN()?'Si no escuchas inglés, instala una voz en inglés en los ajustes de tu dispositivo.':'Si no escuchas español, instala una voz en español en los ajustes de tu dispositivo.');}
- else $('audioNote').textContent=T('La voz depende de tu dispositivo.');
- if(available.some(v=>v.voiceURI===current))$('voices').value=current;
- else if(available.length){const rank=v=>/natural|enhanced|premium|neural/i.test(v.name)?100:/google/i.test(v.name)?80:/paulina|mónica|monica|jorge|diego|juan/i.test(v.name)?60:20;const best=[...available].sort((a,b)=>rank(b)-rank(a))[0];$('voices').value=best.voiceURI;}
+  const sel=$('voices');sel.replaceChildren(new Option(isEN()?'Tyson coach · Recorded voice':'Entrenador Tyson · Voz grabable','tyson'));
+  sel.disabled=true;
+  $('audioNote').textContent=isEN()?'The same recorded coaching voice is used in training and video.':'La misma voz grabada suena al entrenar y al grabar.';
+  $('pitch').disabled=true;$('rate').disabled=true;
 }
-voices();if(synth)synth.addEventListener('voiceschanged',voices);
-function cancelVoice(){speechToken++;speechBusy=false;if(synth)synth.cancel();window.TysonRecorder?.stopSpeaking();document.body.classList.remove('coach-speaking');window.TysonMusic?.voiceEnd();}
-function speak(text,done=()=>{}){cancelVoice();if(!$('voice').checked||(!synth&&!window.TysonRecorder?.active)){done();return;}const token=speechToken;if(window.TysonRecorder?.active){speechBusy=true;document.body.classList.add('coach-speaking');window.TysonMusic?.voiceStart();const end=()=>{if(token!==speechToken)return;speechBusy=false;document.body.classList.remove('coach-speaking');window.TysonMusic?.voiceEnd();done();};window.TysonRecorder.say(text,end);return;}const u=new SpeechSynthesisUtterance(isEN()?text:text.replace(/\bjab\b/gi,'yab'));u.lang=isEN()?'en-US':'es-CO';u.voice=available.find(v=>v.voiceURI===$('voices').value)||null;u.pitch=+$('pitch').value;u.rate=+$('rate').value;u.volume=1;speechBusy=true;document.body.classList.add('coach-speaking');window.TysonMusic?.voiceStart();let finished=false;const end=()=>{if(finished||token!==speechToken)return;finished=true;speechBusy=false;document.body.classList.remove('coach-speaking');window.TysonMusic?.voiceEnd();done();};u.onend=end;u.onerror=()=>{$('voiceStatus').textContent=T('VOZ NO DISPONIBLE · SIGUE LA PANTALLA');end();};synth.speak(u);setTimeout(()=>{if(token===speechToken&&!finished){synth.cancel();end();}},Math.max(12000,text.length*180));}
+voices();
+function cancelVoice(){speechToken++;speechBusy=false;if(synth)synth.cancel();window.TysonUnifiedVoice?.stop();window.TysonRecorder?.stopSpeaking();document.body.classList.remove('coach-speaking');window.TysonMusic?.voiceEnd();}
+function speak(text,done=()=>{}){
+ cancelVoice();if(!$('voice').checked){done();return;}
+ const token=speechToken;
+ speechBusy=true;document.body.classList.add('coach-speaking');window.TysonMusic?.voiceStart();
+ const end=()=>{if(token!==speechToken)return;speechBusy=false;document.body.classList.remove('coach-speaking');window.TysonMusic?.voiceEnd();done();};
+ if(window.TysonRecorder?.active){window.TysonRecorder.say(text,end);return;}
+ if(window.TysonUnifiedVoice){window.TysonUnifiedVoice.say(text,end);return;}
+ end();
+}
 function initAudio(){try{audio=audio||new(window.AudioContext||window.webkitAudioContext)();audio.resume();}catch{}}
 function bell(){if(!$('bell').checked||!audio)return;for(const [i,f]of [660,880,1320].entries()){const o=audio.createOscillator(),g=audio.createGain();o.type='sine';o.frequency.value=f;g.gain.setValueAtTime(.14/(i+1),audio.currentTime);g.gain.exponentialRampToValueAtTime(.001,audio.currentTime+1.2);o.connect(g).connect(audio.destination);o.start();o.stop(audio.currentTime+1.3);}}
 async function keepAwake(){try{if('wakeLock'in navigator)wake=await navigator.wakeLock.request('screen');}catch{}}

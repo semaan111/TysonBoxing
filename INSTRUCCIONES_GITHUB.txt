@@ -1,18 +1,1 @@
-TYSON BOXING CLUB — VERSIÓN MEJORADA REEL FULLSCREEN
-
-1. Descomprime el ZIP en tu PC.
-2. Abre https://github.com/semaan111/TysonAppCol
-3. Add file > Upload files.
-4. Sube TODOS los archivos sueltos a la raíz, junto con los cuatro MP3 de la carpeta coach-audio.
-   Muy importante: index.html debe estar en la raíz, NO dentro de una carpeta extra.
-5. Commit changes y espera a que termine GitHub Pages.
-6. Abre https://semaan111.github.io/TysonAppCol/
-7. En el celular: permite cámara, toca Grabar y entrenar; verás el video full-screen.
-8. Detener video cierra la grabación sin preguntar y muestra el video para guardarlo.
-9. Si no se oye la voz mientras grabas, toca Activar voz en el video y sube el volumen del celular.
-
-La música Spotify permanece solo al inicio y durante los descansos; no se incluye en el video.
-
-ACTUALIZACION VOZ AUDIBLE (9 OCT 2026)
-Para corregir solo el audio en vivo, reemplaza recorder.js e index.html.
-Despues actualiza la pagina evitando caché. Al iniciar la grabación escucha al coach o toca Probar voz en el modo cámara.
+TYSON: Subir los archivos que están DENTRO de esta carpeta a la raíz de GitHub. Conservar coach-audio y sus cuatro MP3. No subir la carpeta contenedora ni el ZIP como único archivo. La música de YouTube requiere mantener el reproductor visible y puede necesitar toque manual para iniciar.

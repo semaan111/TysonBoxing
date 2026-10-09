@@ -26,6 +26,13 @@
     </button>
 
     <div class="record-tools"><button id="recordSetup" class="record-cta" data-sheet="recordSheet" type="button"><span aria-hidden="true">●</span> Grabar entrenamiento + voz <span aria-hidden="true">↗</span></button><button id="recordStop" class="record-stop" type="button" hidden>■ Detener video</button></div>
+<div id="recordStage" class="record-stage" hidden aria-live="off">
+  <canvas id="recordCanvas" class="record-canvas" width="720" height="1280"></canvas>
+  <div class="record-stage-controls">
+    <button id="recordStageStop" class="record-stage-stop" type="button">■ Detener video</button>
+  </div>
+</div>
+
     <section class="ring" aria-label="Entrenamiento" aria-live="off">
       <div class="ring-top"><span class="round-phase"><span class="phase-dot"></span><span id="phase">EN TU ESQUINA</span></span><span id="recBadge" class="rec-badge" hidden>● REC</span><span id="round">ROUND 01 / 06</span></div>
       <div class="clock-face character-stage"><div class="clock-inner">
@@ -59,14 +66,14 @@
   <div class="sheet-header"><h2>Graba tu entrenamiento</h2><button data-close class="done">Cerrar</button></div>
   <div class="sheet-body">
     <p class="record-lead">Tu video incluirá la voz del entrenador y las combinaciones en español o inglés.</p>
-    <video id="cameraPreview" class="camera-preview" autoplay muted playsinline></video>
-    <p class="record-hint">La cámara se activará al pulsar Grabar y entrenar.</p>
+    <video id="cameraPreview" class="camera-preview" autoplay muted playsinline hidden></video>
+    <p class="record-hint">Al empezar, verás la grabación en pantalla completa tal como quedará en el video.</p>
     <div class="record-config"><label>Cámara<select id="cameraDirection"><option value="user">Frontal</option><option value="environment">Trasera</option></select></label>
     <label class="record-mic">Grabar sonido ambiente <input id="recordMicrophone" type="checkbox"></label></div>
     <p class="record-hint">Para evitar eco, el micrófono está desactivado por defecto. La voz del entrenador siempre se incluye en el video. No se graba Spotify.</p>
     <p class="record-hint">Durante la grabación usamos una voz provisional incluida en la aplicación. La voz normal del dispositivo se mantiene cuando no grabas.</p>
     <p id="recordMessage" class="record-message" role="status">Pulsa Grabar y entrenar. Incluiremos la voz en el video.</p>
-    <button id="recordStart" class="start record-start" type="button">● Grabar y entrenar</button>
+    <button id="recordStart" class="start record-start" type="button">● Grabar y entrenar en pantalla completa</button>
     <div id="recordResultTitle" hidden><h3>Tu grabación</h3><p class="record-hint">Revisa el video y guárdalo antes de cerrar la página.</p></div>
     <video id="recordedVideo" class="recorded-video" controls playsinline hidden></video>
     <a id="downloadRecording" class="record-save" href="#" hidden download>↓ Guardar video</a>

@@ -31,6 +31,24 @@
     $('language').disabled=active;
     $('recordSetup').disabled=active;
     $('recordStage').hidden=!active;
+    if(active)$('recordStageStop').disabled=false;
+  }
+  // Safari may interrupt an AudioContext when getUserMedia opens the camera.
+  // Re-check and re-arm it before every instruction, and offer a manual user-gesture recovery.
+  async function ensureAudible(){
+    if(!ctx)return false;
+    try{
+      if(ctx.state!=='running')await ctx.resume();
+    }catch(e){console.warn('Unable to resume coach sound', e)}
+    updateSoundButton();
+    return ctx.state==='running';
+  }
+  function updateSoundButton(){
+    const b=$('recordStageSound');
+    const ready=Boolean(ctx&&ctx.state==='running');
+    b.classList.toggle('is-ready',ready);
+    b.textContent=ready?T('◖)) Voz activa','◖)) Voice on'):T('◖)) Activar voz','◖)) Enable voice');
+    b.setAttribute('aria-label',ready?T('Probar voz','Test coach audio'):T('Activar voz del entrenador','Enable coach audio'));
   }
   function stopSpeaking(){
     ++generation;
@@ -44,19 +62,35 @@
     const parts=text.split(/\.\s*/).map(normalise).filter(Boolean);
     const clips=parts.map(p=>voiceData.phrases[p]);
     if(clips.some(c=>!c)){
-      console.warn('Unrecorded coaching phrase:',parts.filter((p,i)=>!clips[i]));
+      console.warn('Missing recorded phrase:', parts.filter((p,i)=>!clips[i]));
       done();return true;
     }
-    let at=ctx.currentTime+0.035;
-    clips.forEach(([start,duration],index)=>{
-      const source=ctx.createBufferSource();source.buffer=voiceBuffer;
-      source.connect(coachOutput);
-      const length=Math.max(0.05,duration-0.015);
-      source.start(at, start+0.006, length);
-      at+=length+0.14;
-      sources.push(source);
-      if(index===clips.length-1){
-        source.onended=()=>{if(token===generation){sources=[];done();}};
+    // Resume if iOS suspended audio after granting permission for the camera.
+    ensureAudible().then(ok=>{
+      if(token!==generation)return;
+      if(!ok){
+        const b=$('recordStageSound');
+        b.classList.remove('is-ready');
+        b.textContent=T('◖)) Activar voz','◖)) Enable voice');
+        // Do not hang the combo scheduler if the browser still blocks sound.
+        done();return;
+      }
+      try{
+        let at=ctx.currentTime+0.06;
+        clips.forEach(([start,duration],index)=>{
+          const source=ctx.createBufferSource();source.buffer=voiceBuffer;
+          source.connect(coachOutput);
+          const length=Math.max(0.05,duration-0.015);
+          source.start(at,start+0.006,length);
+          at+=length+0.14;
+          sources.push(source);
+          if(index===clips.length-1){
+            source.onended=()=>{if(token===generation){sources=[];done();}};
+          }
+        });
+      }catch(e){
+        console.error('Coach audio could not play:',e);
+        if(token===generation)done();
       }
     });
     return true;
@@ -69,7 +103,7 @@
     cameraStream=null;canvasStream=null;combinedStream=null;
     micSource?.disconnect();micSource=null;
     coachOutput?.disconnect();coachOutput=null;
-    if(ctx){ctx.close().catch(()=>{});ctx=null;}
+    if(ctx){ctx.onstatechange=null;ctx.close().catch(()=>{});ctx=null;}
     voiceBuffer=null;voiceData=null;
     previewVideo.pause();
     previewVideo.srcObject=null;
@@ -77,11 +111,18 @@
   function finish(){
     if(!active||stopping)return;
     stopping=true;
+    const btn=$('recordStageStop');btn.disabled=true;
     stopSpeaking();
-    if(mediaRecorder?.state!=='inactive'){
+    // The video stops at the moment the user taps; there is no confirmation dialog.
+    if(mediaRecorder&&mediaRecorder.state!=='inactive'){
       try{mediaRecorder.requestData()}catch{}
-      mediaRecorder.stop();
+      try{mediaRecorder.stop()}catch(e){console.warn('MediaRecorder.stop:',e)}
     }
+    // Hide camera immediately and pause the workout as the video is being finalized.
+    active=false;setState();
+    if(!['idle','paused','done'].includes(clock.state))pause(T('Video detenido. Revisa tu grabación.','Recording stopped. Review your video.'));
+    status('Procesando video…','Finalizing video…');
+    if(!$('recordSheet').open)$('recordSheet').showModal();
   }
   function showResult(blob,mediaType){
     if(recordingURL)URL.revokeObjectURL(recordingURL);
@@ -170,8 +211,10 @@
       }
       gfx.restore();
     }
-    const topGrad=gfx.createLinearGradient(0,0,0,h*0.28);topGrad.addColorStop(0,'rgba(0,0,0,.75)');topGrad.addColorStop(1,'rgba(0,0,0,0)');gfx.fillStyle=topGrad;gfx.fillRect(0,0,w,h*0.3);
-    const bottomGrad=gfx.createLinearGradient(0,h*0.42,0,h);bottomGrad.addColorStop(0,'rgba(0,0,0,0)');bottomGrad.addColorStop(1,'rgba(0,0,0,.82)');gfx.fillStyle=bottomGrad;gfx.fillRect(0,h*0.35,w,h*0.65);
+    // Transparent lettering with a small shadow replaces the two opaque overlays.
+    gfx.shadowColor='rgba(0,0,0,.75)';
+    gfx.shadowBlur=Math.round(w*.014);
+    gfx.shadowOffsetY=2;
 
     const pad=w*0.06;
     const overlay=currentOverlay();
@@ -183,12 +226,10 @@
     gfx.font=`700 ${Math.round(w*0.018)}px system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif`;
     gfx.fillStyle='rgba(255,255,255,.92)';gfx.fillText('BOXING CLUB',pad,pad*1.9);
     gfx.textAlign='right';
-    roundedRect(w-pad-150,pad*0.75,150,Math.round(h*0.036),999,'rgba(8,8,10,.62)');
     gfx.fillStyle='#ffffff';gfx.font=`700 ${Math.round(w*0.022)}px system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif`;
     gfx.fillText(overlay.round,w-pad-18,pad*1.3);
 
     // REC badge
-    roundedRect(pad,h*0.085,Math.round(w*0.19),Math.round(h*0.04),999,'rgba(0,0,0,.52)');
     gfx.textAlign='left';gfx.fillStyle='#ff5146';gfx.font=`900 ${Math.round(w*0.024)}px system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif`;
     gfx.fillText('● REC',pad+14,h*0.105);
     gfx.fillStyle='rgba(255,255,255,.94)';gfx.font=`700 ${Math.round(w*0.024)}px system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif`;
@@ -196,7 +237,6 @@
 
     // Timer
     const timerBoxW=w*0.42, timerBoxH=h*0.105, timerBoxX=(w-timerBoxW)/2, timerBoxY=h*0.16;
-    roundedRect(timerBoxX,timerBoxY,timerBoxW,timerBoxH,32,'rgba(0,0,0,.44)');
     gfx.textAlign='center';
     gfx.fillStyle='#ffffff';
     gfx.font=`900 ${Math.round(w*0.135)}px system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif`;
@@ -206,7 +246,7 @@
     gfx.fillText(overlay.state==='rest'?T('DESCANSO','REST'):T('TIEMPO RESTANTE','TIME LEFT'),w/2,timerBoxY+timerBoxH*0.9);
 
     // Bottom copy
-    const labelY=h*0.70;
+    const labelY=h*0.64;
     gfx.textAlign='center';gfx.fillStyle='rgba(255,255,255,.82)';
     gfx.font=`800 ${Math.round(w*0.024)}px system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif`;
     gfx.fillText((overlay.comboLabel||'').toUpperCase(),w/2,labelY);
@@ -222,7 +262,7 @@
     drawWrapped((overlay.cue||'').toUpperCase(),w/2,cueY,w*0.78,Math.round(w*0.032),'center',`700 ${Math.round(w*0.03)}px system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif`,'rgba(255,255,255,.82)');
     gfx.font=`700 ${Math.round(w*0.02)}px system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif`;
     gfx.fillStyle='rgba(255,255,255,.56)';
-    gfx.fillText('TYSON BOXING CLUB',w/2,h-pad*0.8);
+    gfx.fillText('TYSON BOXING CLUB',w/2,h*0.90);
     drawRAF=requestAnimationFrame(drawFrame);
   }
 
@@ -245,7 +285,10 @@
     try{
       const AudioCtor=window.AudioContext||window.webkitAudioContext;
       ctx=new AudioCtor();
+      ctx.onstatechange=updateSoundButton;
       const unlocked=ctx.resume();
+      // Start a silent oscillator while handling a real user tap to unlock mobile audio.
+      try{const osc=ctx.createOscillator(),gain=ctx.createGain();gain.gain.value=0;osc.connect(gain).connect(ctx.destination);osc.start();osc.stop(ctx.currentTime+.025);}catch{}
       mixer=ctx.createMediaStreamDestination();
       coachOutput=ctx.createGain();coachOutput.gain.value=0.95;
       coachOutput.connect(ctx.destination);coachOutput.connect(mixer);
@@ -262,6 +305,8 @@
       });
       previewVideo.srcObject=cameraStream;
       await previewVideo.play().catch(()=>{});
+      // iOS may change the audio session when the camera starts; re-arm monitoring.
+      await ensureAudible();
       if(cameraStream.getAudioTracks().length){
         micSource=ctx.createMediaStreamSource(cameraStream);
         const micGain=ctx.createGain();micGain.gain.value=0.72;
@@ -290,21 +335,32 @@
         mediaRecorder=null;chunks=[];stopping=false;
       };
       mediaRecorder.start(1000);
+      // Keep the recorded audio graph running even without ambient microphone.
+      updateSoundButton();
       if(!$('voice').checked){$('voice').checked=true;$('voice').dispatchEvent(new Event('change'));}
       $('recordSheet').close();
       $('start').click();
     }catch(e){
       console.error('Camera/recorder error:',e);
-      if(!active)releaseHardware();
+      active=false;setState();releaseHardware();
       status('No se pudo iniciar. Permite la cámara y verifica que estés en HTTPS.','Could not start. Allow camera access and use HTTPS.');
       $('recordStart').disabled=false;
     }
   }
 
   $('recordStart').addEventListener('click',begin);
-  const askStop=()=>{if(confirm(T('¿Detener el video? El entrenamiento continuará.','Stop the video? Training will continue.')))finish();};
+  const askStop=()=>finish();
   $('recordStop').addEventListener('click',askStop);
   $('recordStageStop').addEventListener('click',askStop);
+  $('recordStageSound').addEventListener('click',async()=>{
+    const ok=await ensureAudible();
+    if(ok){
+      // Audible test; also included in the recording.
+      say(I.lang==='en'?'Hands up.':'Manos arriba.',()=>{});
+    }else{
+      alert(T('El sonido sigue bloqueado. Sube el volumen del celular y vuelve a tocar Activar voz.','Sound is still blocked. Increase your phone volume and tap Enable voice again.'));
+    }
+  });
   $('newRecording').onclick=()=>{if(!confirm(T('Antes de comenzar otra grabación, guarda el video anterior. ¿Continuar?','Save your previous video before starting another recording. Continue?')))return;clearResult();};
   $('shareRecording').onclick=async()=>{
     if(!lastBlob||!navigator.share)return;
@@ -317,7 +373,7 @@
       status(active?'Ya estás grabando. Finaliza el video para guardarlo.':'Pulsa Grabar y entrenar. Verás la toma en pantalla completa tal como quedará en el video.','Tap Record & train. You will see a full-screen preview exactly as it will look in the video.');
     }
   });
-  window.addEventListener('resize',()=>{if(active)resizeCanvas();});
+  // Canvas resolution stays fixed throughout a recording to protect video encoders.
   window.addEventListener('pagehide',()=>{if(active)finish();});
   window.TysonRecorder={get active(){return active},say,stopSpeaking,finish};
   clearResult();

@@ -63,7 +63,7 @@ body[data-state=paused] .timer{opacity:.58}body[data-state=done] .ring{border-co
 .language-wrap select{appearance:none;background:transparent;color:#fff;border:0;outline:0;font:800 12px/1 system-ui;letter-spacing:.04em;cursor:pointer;padding:0 4px 0 0}
 .language-wrap select option{background:#202125;color:#fff}
 /* Módulo de grabación local */
-.record-tools{display:flex;gap:9px;margin:-3px 0 14px;align-items:center}
+.record-tools{display:flex;gap:9px;margin:18px 0 16px;align-items:center}
 .record-cta{width:100%;padding:12px 16px;background:#25252a;border:1px solid #53515a;color:#f6f2ee;border-radius:15px;font-size:13px;letter-spacing:.15px;font-weight:700;display:flex;justify-content:center;align-items:center;gap:10px}
 .record-cta span:first-child{color:#e7483c;font-size:16px}
 .record-cta span:last-child{margin-left:auto;color:#aaa}
@@ -102,12 +102,15 @@ body.is-recording .record-stop{display:block}
 .record-secondary{display:block;width:100%;min-height:44px;margin:9px 0;border:1px solid #767279;border-radius:12px;background:#2d2d31;color:#f6f4ee;font-size:13px;font-weight:700}
 
 
-/* Full-screen recording stage (reel style) */
-.record-stage{position:fixed;inset:0;z-index:90;background:#000;display:block}
-.record-stage[hidden]{display:none}
-.record-canvas{width:100vw;height:100vh;display:block;background:#000;object-fit:cover}
-.record-stage-controls{position:absolute;top:calc(env(safe-area-inset-top) + 14px);right:16px;z-index:2}
-.record-stage-stop{border:0;border-radius:999px;background:rgba(16,16,18,.74);backdrop-filter:blur(12px);color:#fff;padding:12px 16px;font-weight:700;font-size:13px;box-shadow:0 8px 20px rgba(0,0,0,.2)}
-body.is-recording .app-shell{filter:blur(0);pointer-events:none}
+/* Full-screen capture mode: same canvas is displayed and recorded. */
+.record-stage{position:fixed;inset:0;inset-block:0;z-index:1000;background:#08090b;isolation:isolate}
+.record-stage[hidden]{display:none!important}
+.record-canvas{display:block;width:100%;height:100%;object-fit:fill;touch-action:manipulation}
+.record-stage-controls{position:absolute;z-index:3;left:16px;right:16px;bottom:calc(24px + env(safe-area-inset-bottom));display:flex;gap:10px;justify-content:center;align-items:center;pointer-events:auto}
+.record-stage-stop,.record-stage-sound{touch-action:manipulation;pointer-events:auto;min-height:50px;border:1px solid rgba(255,255,255,.35);color:white;font-size:13px;font-weight:850;letter-spacing:.2px;border-radius:12px;box-shadow:0 5px 18px #0005;padding:12px 15px}
+.record-stage-stop{background:#d92b29;flex:1;max-width:250px}
+.record-stage-sound{background:rgba(20,21,23,.8);flex-shrink:0}
+.record-stage-sound.is-ready{border-color:#84bd9e;color:#d9ffe5}
+/* Never disable pointer events on the app parent of recording controls. */
 body.is-recording .music-dock{display:none}
 body.is-recording{overflow:hidden}

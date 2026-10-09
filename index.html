@@ -22,16 +22,11 @@
     <button class="session-chip" data-sheet="settingsSheet" aria-label="Configurar sesión">
       <span class="chip-icon"><svg viewBox="0 0 24 24"><path d="M5 7h14M5 17h14M9 4v6m6 4v6"/></svg></span>
       <span><b id="sessionSummary">6 rounds · 2 min</b><small id="sessionDetail">Intermedio · Completo</small></span>
-      <span class="chip-edit">AJUSTAR <span aria-hidden="true">↗</span></span>
+      <span class="chip-edit">AJUSTAR</span>
     </button>
 
-    <div class="record-tools"><button id="recordSetup" class="record-cta" data-sheet="recordSheet" type="button"><span aria-hidden="true">●</span> Grabar entrenamiento + voz <span aria-hidden="true">↗</span></button><button id="recordStop" class="record-stop" type="button" hidden>■ Detener video</button></div>
-<div id="recordStage" class="record-stage" hidden aria-live="off">
-  <canvas id="recordCanvas" class="record-canvas" width="720" height="1280"></canvas>
-  <div class="record-stage-controls">
-    <button id="recordStageStop" class="record-stage-stop" type="button">■ Detener video</button>
-  </div>
-</div>
+    <div class="record-tools"><button id="recordSetup" class="record-cta" data-sheet="recordSheet" type="button"><span aria-hidden="true">●</span> Grabar entrenamiento + voz</button><button id="recordStop" class="record-stop" type="button" hidden>■ Detener video</button></div>
+
 
     <section class="ring" aria-label="Entrenamiento" aria-live="off">
       <div class="ring-top"><span class="round-phase"><span class="phase-dot"></span><span id="phase">EN TU ESQUINA</span></span><span id="recBadge" class="rec-badge" hidden>● REC</span><span id="round">ROUND 01 / 06</span></div>
@@ -55,6 +50,13 @@
     <button data-sheet="guideSheet"><svg viewBox="0 0 24 24"><path d="M12 5v16M3 4c4-1 7-1 9 1 2-2 5-2 9-1v15c-4-1-7-1-9 2-2-3-5-3-9-2V4Z"/></svg><span>Técnica</span></button>
   </nav>
 </div>
+<div id="recordStage" class="record-stage" hidden aria-label="Vista previa de grabación">
+  <canvas id="recordCanvas" class="record-canvas" width="720" height="1280" aria-label="Vista de cámara, tiempo y combinación"></canvas>
+  <div class="record-stage-controls">
+    <button id="recordStageSound" class="record-stage-sound" type="button" aria-label="Activar voz del entrenador">◖)) Activar voz</button>
+    <button id="recordStageStop" class="record-stage-stop" type="button">■ Detener video</button>
+  </div>
+</div>
 <dialog id="settingsSheet" class="sheet"><div class="handle"></div><div class="sheet-header"><h2>Tu sesión</h2><button data-close class="done">Listo</button></div><div class="sheet-body"><p class="section-label">ENTRENAMIENTO</p><form id="settings"><fieldset id="config"><div class="group"><label>Nivel<select id="level"><option value="1">Principiante</option><option value="2" selected>Intermedio</option><option value="3">Avanzado</option></select></label><label>Enfoque<select id="focus"><option value="all">Completo</option><option value="technique">Técnica y precisión</option><option value="body">Trabajo al cuerpo</option><option value="defense">Defensa y pasos</option></select></label><label>Guardia<select id="stance"><option value="orthodox">Diestra</option><option value="southpaw">Zurda</option></select></label></div><p class="section-label">TIEMPOS</p><div class="group"><label>Rounds<input id="rounds" type="number" min="1" max="20" value="6" required inputmode="numeric"></label><label>Round <span class="unit">seg</span><input id="work" type="number" min="10" max="900" value="120" required inputmode="numeric"></label><label>Descanso <span class="unit">seg</span><input id="rest" type="number" min="0" max="300" value="30" required inputmode="numeric"></label><label>Preparación <span class="unit">seg</span><input id="prepare" type="number" min="3" max="60" value="10" required inputmode="numeric"></label></div><div class="group range-group"><label>Tiempo para ejecutar <span id="gapValue">2 s</span><input id="gap" type="range" min="1" max="12" value="2"></label></div><p class="field-note">La pausa empieza cuando termina la voz.</p><div class="presets"><button type="button" data-preset="beginner">Suave</button><button type="button" data-preset="classic">Clásico 3′</button><button type="button" data-preset="quick">10 minutos</button></div></fieldset></form><div class="total"><span>Duración total</span><strong id="total">14:40</strong></div><p class="section-label">TU ENTRENADOR</p><div class="group"><label class="toggle">Instrucciones por voz<input id="voice" type="checkbox" role="switch" checked></label><label class="toggle">Campana<input id="bell" type="checkbox" role="switch" checked></label><label class="voice-row">Voz en español<select id="voices"><option>Buscando voces…</option></select></label></div><div class="group range-group"><label>Tono<input id="pitch" type="range" min="0.6" max="1.3" step="0.1" value="1"></label><label>Velocidad<input id="rate" type="range" min="0.7" max="1.3" step="0.1" value="1"></label></div><button id="testVoice" class="outline">Escuchar entrenador</button><p class="field-note" id="audioNote">La voz depende de tu dispositivo.</p><p class="field-note">Mantén la pantalla abierta. Al salir, la sesión se pausa.</p></div></dialog>
 <dialog id="historySheet" class="sheet"><div class="handle"></div><div class="sheet-header"><h2>Tu actividad</h2><button data-close class="done">Listo</button></div><div class="sheet-body"><p class="sheet-intro">Cada round cuenta.</p><div id="history" class="history"></div><button id="clearHistory" class="text-button">Borrar historial</button><p class="field-note">Tus sesiones se guardan en este dispositivo. El contador registra combos indicados, no golpes detectados.</p></div></dialog>
 <dialog id="guideSheet" class="sheet"><div class="handle"></div><div class="sheet-header"><h2>La técnica primero</h2><button data-close class="done">Listo</button></div><div class="sheet-body"><p class="sheet-intro">Aprende. Practica. Repite.</p><p class="field-note">Calienta antes de empezar. Practica sombra o saco con espacio libre. Para trabajo de contacto, busca un entrenador.</p><details open><summary>Golpes y movimientos</summary><p class="field-note">1–6: golpes básicos. C: cuerpo. Las manos adelantada y atrasada cambian según tu guardia.</p><div id="dictionary" class="dictionary"></div></details><details><summary>Tus combinaciones</summary><p id="catalogCount" class="field-note"></p><div id="catalog" class="catalog"></div></details><details><summary>Sobre Tyson</summary><p class="field-note">114 secuencias con referencias de <a href="https://blog.joinfightcamp.com/training/boxing-101-3-punch-combos/">FightCamp</a> y <a href="https://www.englandboxing.org/members/stay-active/">England Boxing</a>, y adaptaciones propias. No existe una lista finita de todas las combinaciones.</p><p class="field-note">App independiente, sin afiliación a Mike Tyson. No utiliza su voz.</p></details></div></dialog>
@@ -71,7 +73,7 @@
     <div class="record-config"><label>Cámara<select id="cameraDirection"><option value="user">Frontal</option><option value="environment">Trasera</option></select></label>
     <label class="record-mic">Grabar sonido ambiente <input id="recordMicrophone" type="checkbox"></label></div>
     <p class="record-hint">Para evitar eco, el micrófono está desactivado por defecto. La voz del entrenador siempre se incluye en el video. No se graba Spotify.</p>
-    <p class="record-hint">Durante la grabación usamos una voz provisional incluida en la aplicación. La voz normal del dispositivo se mantiene cuando no grabas.</p>
+    <p class="record-hint">Durante la grabación usamos una voz provisional incluida en la aplicación. Si no la escuchas, pulsa «Activar voz» en la pantalla de cámara; sube también el volumen multimedia.</p>
     <p id="recordMessage" class="record-message" role="status">Pulsa Grabar y entrenar. Incluiremos la voz en el video.</p>
     <button id="recordStart" class="start record-start" type="button">● Grabar y entrenar en pantalla completa</button>
     <div id="recordResultTitle" hidden><h3>Tu grabación</h3><p class="record-hint">Revisa el video y guárdalo antes de cerrar la página.</p></div>
@@ -79,7 +81,7 @@
     <a id="downloadRecording" class="record-save" href="#" hidden download>↓ Guardar video</a>
     <button id="shareRecording" class="record-secondary" hidden>Compartir / Guardar en Fotos</button>
     <button id="newRecording" class="record-secondary" hidden>Iniciar otra grabación</button>
-    <p class="record-privacy">🔒 Video local: no se sube a ningún servidor.</p>
+    <p class="record-privacy">Video local: no se sube a ningún servidor.</p>
   </div>
 </dialog>
 <script src="i18n.js"></script><script src="core.js"></script><script src="app.js"></script><script src="mobile.js"></script><script src="music.js"></script><script src="voice-bank.js"></script><script src="recorder.js"></script><script src="https://open.spotify.com/embed/iframe-api/v1" async></script></body></html>

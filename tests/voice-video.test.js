@@ -21,6 +21,9 @@ test('la app incluye mezcla MediaRecorder con audio grabable, sin capturar Spoti
  assert.match(s,/new MediaStream\(/);
  assert.match(s,/MediaRecorder\(/);
  assert.match(s,/coachOutput\.connect\(mixer\)/);
- assert.match(s,/cameraStream\.getVideoTracks\(\)/);
+ assert.match(s,/canvasStream\.getVideoTracks\(\)/);
+ assert.match(s,/recordCanvas\.captureStream\(24\)/);
+ assert.doesNotMatch(s,/const topGrad=/);
+ assert.doesNotMatch(s,/const bottomGrad=/);
  assert.doesNotMatch(s,/spotifyEmbed/);
 });

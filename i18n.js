@@ -13,7 +13,7 @@
     'Pulsa Grabar y entrenar. Incluiremos la voz en el video.':'Tap Record & train. The coach voice will be included in the video.',
     '● Grabar y entrenar':'● Record & train', 'Tu grabación':'Your video',
     'Revisa el video y guárdalo antes de cerrar la página.':'Preview and save your video before leaving this page.',
-    '↓ Guardar video':'↓ Save video','🔒 Video local: no se sube a ningún servidor.':'🔒 Local video: nothing is uploaded to a server.',
+    '↓ Guardar video':'↓ Save video','Video local: no se sube a ningún servidor.':'Local video: nothing is uploaded to a server.',
     '■ Detener video':'■ Stop video',
 
     'TYSON Boxing Club · Tu esquina':'TYSON Boxing Club · Your corner',

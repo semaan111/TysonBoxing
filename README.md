@@ -1,4 +1,4 @@
-# TYSON Boxing Club — Grabación de video con voz / Video recording with coach voice
+# TYSON Boxing Club — Reel a pantalla completa con voz / Full-screen recording
 
 Versión mobile first, bilingüe español/inglés, **música de Spotify solo en pantalla inicial y descansos**, entrenador de boxeo y grabación de cámara con la voz de las instrucciones integrada en el archivo final.
 
@@ -17,7 +17,7 @@ La aplicación funciona completamente en GitHub Pages, sin backend, contraseñas
 1. En la pantalla inicial pulsa **Grabar entrenamiento + voz**.
 2. Escoge **Cámara frontal** o **Trasera** y, opcionalmente, activa **Grabar sonido ambiente**. Este micrófono comienza desactivado para evitar capturar la voz dos veces o producir eco.
 3. Pulsa **Grabar y entrenar** y **acepta el permiso de cámara**. La grabación empieza junto con el entrenamiento.
-4. Escucharás las instrucciones y las combinaciones mientras boxeas; la voz del entrenador se mezcla digitalmente con la cámara para que quede **grabada dentro del archivo final**.
+4. Escucharás las instrucciones y las combinaciones mientras boxeas; la voz del entrenador se mezcla digitalmente con la cámara para que quede **grabada dentro del archivo final**. Si no oyes la voz, toca **Activar voz** sobre la imagen mientras grabas.
 5. Al finalizar el entrenamiento, la app prepara el video, muestra una vista previa y ofrece **Guardar video** y, cuando esté disponible, **Compartir / Guardar en Fotos**.
 6. La app conserva temporalmente el video en memoria para volver a guardarlo mientras no cierres la pestaña. **Guárdalo antes de salir.** No se sube a ningún servidor.
 
@@ -38,3 +38,13 @@ La aplicación funciona completamente en GitHub Pages, sin backend, contraseñas
 `npm test` ejecuta las pruebas de biblioteca de golpes, reloj, bilingüismo, Spotify y bancos de audio. Se verificó además en Chromium simulado un video final WebM con pistas de **video VP8** y **audio Opus** que contiene voz, pero la cámara de iPhone real queda pendiente de comprobación.
 
 Este proyecto independiente no está afiliado a Mike Tyson ni Spotify y no utiliza su voz real.
+
+## Actualización: grabación tipo reel (octubre 2026)
+
+- **Detener video**: ahora funciona sin confirmación, deja de grabar inmediatamente, pausa el entrenamiento y abre la pantalla de revisión.
+- El preview en pantalla completa usa exactamente el mismo canvas que el video guardado. Las combinaciones y el cronómetro se dibujan dentro del archivo de video.
+- Se quitaron las dos capas oscuras sobre la cámara. Los textos se distinguen mediante sombra discreta.
+- Se separaron las tarjetas Ajustar y Grabar; se eliminaron las flechas decorativas y el icono de candado.
+- Audio: se reanuda el motor Web Audio después de activar la cámara; mientras se graba existe el botón **Activar voz** para recuperarlo si Safari lo suspende. Prueba con el volumen multimedia alto y el celular desbloqueado.
+- Si el audio de la grabación sigue fallando en algún iPhone, prueba Safari actualizado y comparte el modelo e iOS: el hardware del navegador puede limitar la mezcla de cámara y Web Audio.
+- El botón Detener y Activar voz son controles de la aplicación, no quedan superpuestos en el video exportado.

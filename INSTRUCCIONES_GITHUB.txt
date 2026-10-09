@@ -1,24 +1,14 @@
-TYSON BOXING CLUB · NUEVA VERSIÓN CON VIDEO Y VOZ
+TYSON BOXING CLUB — VERSIÓN MEJORADA REEL FULLSCREEN
 
-1. EXTRAER el ZIP en tu PC.
-2. ABRIR: https://github.com/semaan111/TysonAppCol
-3. CLIC: Add file > Upload files.
-4. ARRASTRAR LOS ARCHIVOS y carpetas extraídos, NO el ZIP.
-   ATENCIÓN: la carpeta coach-audio, voice-bank.js y recorder.js también deben subir.
-5. CLIC: Commit changes.
-6. ESPERAR a que GitHub Pages termine.
-7. ABRIR: https://semaan111.github.io/TysonAppCol/
+1. Descomprime el ZIP en tu PC.
+2. Abre https://github.com/semaan111/TysonAppCol
+3. Add file > Upload files.
+4. Sube TODOS los archivos sueltos a la raíz, junto con los cuatro MP3 de la carpeta coach-audio.
+   Muy importante: index.html debe estar en la raíz, NO dentro de una carpeta extra.
+5. Commit changes y espera a que termine GitHub Pages.
+6. Abre https://semaan111.github.io/TysonAppCol/
+7. En el celular: permite cámara, toca Grabar y entrenar; verás el video full-screen.
+8. Detener video cierra la grabación sin preguntar y muestra el video para guardarlo.
+9. Si no se oye la voz mientras grabas, toca Activar voz en el video y sube el volumen del celular.
 
-PARA GRABAR:
-- Pulsar "Grabar entrenamiento + voz".
-- Elegir cámara frontal o trasera y pulsar "Grabar y entrenar".
-- Autorizar la cámara.
-- Entrenar. La voz de las combinaciones queda dentro del archivo de video.
-- Cuando termine, pulsar "Guardar video" (o compartirlo si aparece esa opción).
-
-Durante la grabación suena una voz provisional incluida para poder capturarla
-con la cámara; al entrenar sin grabar continúa la voz nativa del teléfono.
-Spotify se mantiene en la pantalla inicial y durante descansos, pero su
-música NO queda dentro del video.
-El video solo está en tu dispositivo: GUÁRDALO ANTES DE CERRAR LA PÁGINA.
-Prueba la grabación en tu iPhone: la compatibilidad depende de Safari/iOS.
+La música Spotify permanece solo al inicio y durante los descansos; no se incluye en el video.

@@ -13,6 +13,66 @@
   let mediaRecorder=null, combinedStream=null, chunks=[], sources=[], generation=0;
   let active=false, stopping=false, recordingURL=null, lastBlob=null, lastFileName='', micSource=null, drawRAF=0;
   let facingMode='user';
+  // Safari on iPhone may route WebAudio to a silent/receiver output during MediaRecorder.
+  // Keep WebAudio exclusively for the saved recording on Apple devices, and play
+  // the same clips through a native HTMLAudioElement for the person training.
+  let nativeMonitor=null, monitorTimeouts=[], monitorGranted=false;
+  let monitorFallbackMode=false, monitorWarning=false;
+  let speakerGain=null;
+  function setAudioSession(mic){
+    try{
+      if(navigator.audioSession && 'type' in navigator.audioSession){
+        navigator.audioSession.type=mic?'play-and-record':'playback';
+      }
+    }catch(err){console.warn('audioSession not configurable',err);}
+  }
+  function resetAudioSession(){
+    try{if(navigator.audioSession && 'type' in navigator.audioSession) navigator.audioSession.type='auto';}catch{}
+  }
+  function clearNativeMonitor(){
+    monitorTimeouts.forEach(clearTimeout);monitorTimeouts=[];
+    if(nativeMonitor){try{nativeMonitor.pause();}catch{}}
+  }
+  function createNativeMonitor(url){
+    clearNativeMonitor();
+    nativeMonitor=new Audio();
+    nativeMonitor.preload='auto';nativeMonitor.playsInline=true;
+    nativeMonitor.src=url;
+    nativeMonitor.volume=1;
+    nativeMonitor.addEventListener('error',()=>{
+      monitorWarning=true; updateSoundButton();
+    });
+    nativeMonitor.load();
+  }
+  function playNativeMonitor(clips,token){
+    if(!nativeMonitor||!clips.length||!active)return;
+    clearNativeMonitor();
+    let elapsed=0;
+    clips.forEach(([start,duration])=>{
+      const t=setTimeout(()=>{
+        if(token!==generation || !active || !nativeMonitor)return;
+        try{
+          nativeMonitor.pause();
+          nativeMonitor.currentTime=Math.max(0,start+.006);
+          const playing=nativeMonitor.play();
+          if(playing?.then)playing.then(()=>{
+            monitorGranted=true; monitorWarning=false; updateSoundButton();
+          }).catch(err=>{
+            console.warn('Native audio monitor blocked:',err);
+            monitorGranted=false; monitorWarning=true; updateSoundButton();
+          });
+        }catch(err){monitorWarning=true;updateSoundButton();}
+      },Math.round(elapsed*1000));
+      monitorTimeouts.push(t);
+      elapsed+=Math.max(.05,duration-.015)+.14;
+      const stopAt=setTimeout(()=>{
+        if(token!==generation)return;
+        try{nativeMonitor.pause();}catch{}
+      },Math.round((elapsed-.14)*1000));
+      monitorTimeouts.push(stopAt);
+    });
+  }
+  
   const apple=/iPhone|iPad|iPod|Macintosh/.test(navigator.userAgent)&&/AppleWebKit/.test(navigator.userAgent);
   const opts=apple?['video/mp4;codecs=avc1.42E01E,mp4a.40.2','video/mp4','video/webm;codecs=vp8,opus','video/webm']:['video/webm;codecs=vp8,opus','video/webm','video/mp4;codecs=avc1.42E01E,mp4a.40.2','video/mp4'];
 
@@ -47,11 +107,14 @@
     const b=$('recordStageSound');
     const ready=Boolean(ctx&&ctx.state==='running');
     b.classList.toggle('is-ready',ready);
-    b.textContent=ready?T('◖)) Voz activa','◖)) Voice on'):T('◖)) Activar voz','◖)) Enable voice');
+    if(monitorWarning) b.textContent=T('◖)) Toca para oír la voz','◖)) Tap for sound');
+    else if(apple) b.textContent=T('◖)) Probar voz','◖)) Test coach');
+    else b.textContent=ready?T('◖)) Voz activa','◖)) Voice on'):T('◖)) Activar voz','◖)) Enable voice');
     b.setAttribute('aria-label',ready?T('Probar voz','Test coach audio'):T('Activar voz del entrenador','Enable coach audio'));
   }
   function stopSpeaking(){
     ++generation;
+    clearNativeMonitor();
     sources.forEach(s=>{try{s.stop()}catch{}});
     sources=[];
   }
@@ -65,7 +128,10 @@
       console.warn('Missing recorded phrase:', parts.filter((p,i)=>!clips[i]));
       done();return true;
     }
-    // Resume if iOS suspended audio after granting permission for the camera.
+    // Native media playback bypasses iOS WebAudio silent-mode limitations.
+    // The saved video continues to use WebAudio, without acoustic microphone echo.
+    if(apple)playNativeMonitor(clips,token);
+    // Resume if iOS suspended WebAudio after granting camera permission.
     ensureAudible().then(ok=>{
       if(token!==generation)return;
       if(!ok){
@@ -102,7 +168,11 @@
     combinedStream?.getTracks().forEach(t=>t.stop());
     cameraStream=null;canvasStream=null;combinedStream=null;
     micSource?.disconnect();micSource=null;
+    clearNativeMonitor();
+    if(nativeMonitor){nativeMonitor.removeAttribute('src');nativeMonitor.load();nativeMonitor=null;}
+    speakerGain?.disconnect();speakerGain=null;
     coachOutput?.disconnect();coachOutput=null;
+    resetAudioSession();
     if(ctx){ctx.onstatechange=null;ctx.close().catch(()=>{});ctx=null;}
     voiceBuffer=null;voiceData=null;
     previewVideo.pause();
@@ -284,6 +354,7 @@
     status('Preparando cámara, pantalla completa y voz grabable…','Preparing camera, full-screen view and recordable coach audio…');
     try{
       const AudioCtor=window.AudioContext||window.webkitAudioContext;
+      setAudioSession($('recordMicrophone').checked);
       ctx=new AudioCtor();
       ctx.onstatechange=updateSoundButton;
       const unlocked=ctx.resume();
@@ -291,9 +362,27 @@
       try{const osc=ctx.createOscillator(),gain=ctx.createGain();gain.gain.value=0;osc.connect(gain).connect(ctx.destination);osc.start();osc.stop(ctx.currentTime+.025);}catch{}
       mixer=ctx.createMediaStreamDestination();
       coachOutput=ctx.createGain();coachOutput.gain.value=0.95;
-      coachOutput.connect(ctx.destination);coachOutput.connect(mixer);
+      speakerGain=ctx.createGain();
+      // iOS monitors through an independent HTML audio player instead;
+      // on other systems WebAudio feeds both speakers and the recorder.
+      speakerGain.gain.value=apple?0:1;
+      coachOutput.connect(speakerGain).connect(ctx.destination);
+      coachOutput.connect(mixer);
       const bankId=I.lang+'-'+$('stance').value;
       voiceData=window.TysonVoiceBank[bankId];
+      if(apple){
+        createNativeMonitor(voiceData.url);
+        // Initiate playback inside this actual button press to unlock iOS audio.
+        // No microphone is required: the coach voice is mixed digitally.
+        nativeMonitor.volume=0.05;
+        const attempt=nativeMonitor.play();
+        if(attempt?.then)attempt.then(()=>{
+          if(nativeMonitor){if(!active){nativeMonitor.pause();nativeMonitor.currentTime=0;}nativeMonitor.volume=1;monitorGranted=true;}
+        }).catch(err=>{
+          if(nativeMonitor)nativeMonitor.volume=1;
+          console.warn('First native monitor unlock blocked:',err);
+        });
+      }
       const response=await fetch(voiceData.url);
       if(!response.ok)throw new Error('Audio files not found');
       voiceBuffer=await ctx.decodeAudioData(await response.arrayBuffer());
@@ -303,6 +392,8 @@
         video:{facingMode:{ideal:facingMode},width:{ideal:720},height:{ideal:1280},frameRate:{ideal:24}},
         audio:$('recordMicrophone').checked?{echoCancellation:true,noiseSuppression:true}:false
       });
+      // Microphone capture can force Safari to change the audio output route.
+      setAudioSession($('recordMicrophone').checked);
       previewVideo.srcObject=cameraStream;
       await previewVideo.play().catch(()=>{});
       // iOS may change the audio session when the camera starts; re-arm monitoring.
@@ -352,13 +443,36 @@
   const askStop=()=>finish();
   $('recordStop').addEventListener('click',askStop);
   $('recordStageStop').addEventListener('click',askStop);
-  $('recordStageSound').addEventListener('click',async()=>{
-    const ok=await ensureAudible();
-    if(ok){
-      // Audible test; also included in the recording.
-      say(I.lang==='en'?'Hands up.':'Manos arriba.',()=>{});
-    }else{
-      alert(T('El sonido sigue bloqueado. Sube el volumen del celular y vuelve a tocar Activar voz.','Sound is still blocked. Increase your phone volume and tap Enable voice again.'));
+  $('recordStageSound').addEventListener('click',()=>{
+    // Never trigger the main voice scheduler here: it cancels the active sequence and
+    // would leave the workout speech scheduler waiting indefinitely.
+    setAudioSession($('recordMicrophone').checked);
+    ensureAudible();
+    if(apple&&nativeMonitor&&voiceData){
+      // Native media playback must be initiated right in this click handler on iOS.
+      if(!nativeMonitor.paused){
+        monitorWarning=false;updateSoundButton();return;
+      }
+      const clip=voiceData.phrases[I.lang==='en'?'hands up':'manos arriba'];
+      if(!clip)return;
+      const token=generation;
+      try{
+        nativeMonitor.currentTime=clip[0]+.006;
+        const playing=nativeMonitor.play();
+        if(playing?.then)playing.then(()=>{
+          monitorWarning=false;monitorGranted=true;updateSoundButton();
+        }).catch(err=>{console.warn('Coach monitor blocked on tap',err);monitorWarning=true;updateSoundButton();});
+        monitorTimeouts.push(setTimeout(()=>{
+          if(token===generation&&nativeMonitor)nativeMonitor.pause();
+        },Math.min(1100,Math.round(clip[1]*1000))));
+      }catch(err){monitorWarning=true;updateSoundButton();}
+    }else if(ctx){
+      // Independent audible click-feedback on other browsers.
+      try{const osc=ctx.createOscillator(),gain=ctx.createGain();
+        osc.frequency.value=660;gain.gain.setValueAtTime(0.07,ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.0001,ctx.currentTime+.16);
+        osc.connect(gain).connect(ctx.destination);osc.start();osc.stop(ctx.currentTime+.17);
+      }catch{}
     }
   });
   $('newRecording').onclick=()=>{if(!confirm(T('Antes de comenzar otra grabación, guarda el video anterior. ¿Continuar?','Save your previous video before starting another recording. Continue?')))return;clearResult();};

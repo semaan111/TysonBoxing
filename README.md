@@ -48,3 +48,15 @@ Este proyecto independiente no está afiliado a Mike Tyson ni Spotify y no utili
 - Audio: se reanuda el motor Web Audio después de activar la cámara; mientras se graba existe el botón **Activar voz** para recuperarlo si Safari lo suspende. Prueba con el volumen multimedia alto y el celular desbloqueado.
 - Si el audio de la grabación sigue fallando en algún iPhone, prueba Safari actualizado y comparte el modelo e iOS: el hardware del navegador puede limitar la mezcla de cámara y Web Audio.
 - El botón Detener y Activar voz son controles de la aplicación, no quedan superpuestos en el video exportado.
+
+
+## Actualización: escuchar al entrenador mientras grabas
+
+La voz debe sonar **en el celular durante el entrenamiento** y también quedar integrada en el video guardado. Esta versión separa las dos rutas:
+
+- **En iPhone/Safari:** reproduce las frases mediante un reproductor de audio HTML separado mientras Web Audio sigue mezclando esas mismas frases en el archivo grabado. También solicita el modo de sesión de audio `playback` (o `play-and-record` si activas el micrófono ambiente), cuando el navegador lo permite.
+- **En otros navegadores:** mantiene la voz por Web Audio conectada al altavoz y al video.
+- **Mientras grabas:** el botón superior **Probar voz / Test coach** puede activar la salida del iPhone mediante una pulsación directa, sin interrumpir el programa ni dejar de anunciar combinaciones. Si aparece **Toca para oír la voz**, púlsalo.
+- **Recomendación para iPhone:** prueba con el volumen multimedia alto, el altavoz del teléfono o auriculares, y desactiva **Grabar sonido ambiente** si no lo necesitas. Si el iPhone mantiene el audio silenciado, toca **Probar voz** sobre la grabación.
+
+La activación de audio puede variar en versiones de iOS y Safari; la salida real por los altavoces de un iPhone debe comprobarse en ese dispositivo. El hecho de que el archivo grabado contenga audio no confirma que Safari lo haya enviado al altavoz.

@@ -12,3 +12,7 @@ TYSON BOXING CLUB — VERSIÓN MEJORADA REEL FULLSCREEN
 9. Si no se oye la voz mientras grabas, toca Activar voz en el video y sube el volumen del celular.
 
 La música Spotify permanece solo al inicio y durante los descansos; no se incluye en el video.
+
+ACTUALIZACION VOZ AUDIBLE (9 OCT 2026)
+Para corregir solo el audio en vivo, reemplaza recorder.js e index.html.
+Despues actualiza la pagina evitando caché. Al iniciar la grabación escucha al coach o toca Probar voz en el modo cámara.

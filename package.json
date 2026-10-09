@@ -1,0 +1,1 @@
+{"name":"tyson-boxing-club","version":"1.0.0","private":true,"description":"Entrenamiento de boxeo por voz en español","scripts":{"start":"node server.js","test":"node --test tests/*.test.js"},"engines":{"node":">=20"}}

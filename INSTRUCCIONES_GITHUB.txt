@@ -1,0 +1,24 @@
+TYSON BOXING CLUB · NUEVA VERSIÓN CON VIDEO Y VOZ
+
+1. EXTRAER el ZIP en tu PC.
+2. ABRIR: https://github.com/semaan111/TysonAppCol
+3. CLIC: Add file > Upload files.
+4. ARRASTRAR LOS ARCHIVOS y carpetas extraídos, NO el ZIP.
+   ATENCIÓN: la carpeta coach-audio, voice-bank.js y recorder.js también deben subir.
+5. CLIC: Commit changes.
+6. ESPERAR a que GitHub Pages termine.
+7. ABRIR: https://semaan111.github.io/TysonAppCol/
+
+PARA GRABAR:
+- Pulsar "Grabar entrenamiento + voz".
+- Elegir cámara frontal o trasera y pulsar "Grabar y entrenar".
+- Autorizar la cámara.
+- Entrenar. La voz de las combinaciones queda dentro del archivo de video.
+- Cuando termine, pulsar "Guardar video" (o compartirlo si aparece esa opción).
+
+Durante la grabación suena una voz provisional incluida para poder capturarla
+con la cámara; al entrenar sin grabar continúa la voz nativa del teléfono.
+Spotify se mantiene en la pantalla inicial y durante descansos, pero su
+música NO queda dentro del video.
+El video solo está en tu dispositivo: GUÁRDALO ANTES DE CERRAR LA PÁGINA.
+Prueba la grabación en tu iPhone: la compatibilidad depende de Safari/iOS.
